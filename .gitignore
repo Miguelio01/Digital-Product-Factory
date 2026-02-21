@@ -1,0 +1,40 @@
+# Entornos virtuales
+venv/
+.venv/
+env/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Modelos pesados (Ya los tenemos locales, no hace falta subirlos)
+models/
+backend/models/
+*.onnx
+
+# Archivos de datos y base de datos local
+*.db
+*.sqlite3
+backend/*.db
+qdrant_storage/
+
+# Archivos de usuario y temporales
+static/generated_images/*
+backend/static/generated_images/*
+backend/temp_uploads/*
+.DS_Store
+
+# Secretos (¡IMPORTANTE!)
+.env
+backend/.env
+frontend/.env.local
+frontend/.env
+
+# Node.js
+node_modules/
+frontend/node_modules/
+.next/
+frontend/.next/
+pnpm-lock.yaml
+frontend/pnpm-lock.yaml
