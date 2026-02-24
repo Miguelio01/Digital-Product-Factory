@@ -7,36 +7,33 @@ sequenceDiagram
     participant U as 👤 Miguel (Usuario)
     participant M as 🧠 M.I.D.A.S. (Orchestrator)
     participant S as 📜 SOUL & Ventures (Memoria)
+    participant V as 📚 BD Vectorial (Prompts Millonarios)
     participant R as 🔍 Sub-Agente Research (Deep)
     participant D as 🎨 Sub-Agente Design (Visual)
     participant C as ✍️ Sub-Agente Copy (Strategy)
 
     U->>M: Envía Petición (Chat/Voz)
-    Note over M: "Analizando Meta e Identificando Negocio..."
-
     M->>S: Consulta Contexto del Emprendimiento
-    S-->>M: Devuelve: Reglas, Tono y Catálogo de Productos
+    S-->>M: Devuelve: Reglas y Tono
 
-    M->>M: Crea Plan de Acción Autónomo
+    Note over M: "Extrayendo Inteligencia Experta..."
+    M->>V: Busca Prompts Ganadores y Manuales
+    V-->>M: Devuelve: Estructuras IR y Plantillas Maestras
 
     rect rgb(240, 240, 240)
-        Note right of M: Bucle de Ejecución de Skills
-        M->>R: Ejecuta Deep Research en Manuales
-        R-->>M: Reporte Estratégico Detallado
+        Note right of M: Ejecución Guiada por Conocimiento
+        M->>R: Deep Research (Usando manuales recuperados)
+        R-->>M: Reporte Estratégico
 
-        M->>C: Genera Estrategia Millonaria (Copy)
-        C-->>M: Guiones, Estructura de Oferta y Posts
+        M->>C: Genera Copy (Usando Plantillas Millonarias)
+        C-->>M: Guiones y Ofertas Irresistibles
 
-        M->>D: Genera Conceptos Visuales (Imagen)
-        D-->>M: Prompts para IG/FB/YT (Gemini Image Gen)
+        M->>D: Genera Diseño (Usando Prompts de Imagen Expertos)
+        D-->>M: Conceptos Visuales de Alto Impacto
     end
 
-    M->>M: Autocrítica y Refinamiento (Soul Check)
-    
-    M->>S: Guarda Aprendizaje en MEMORY.md
-    M->>U: Entrega Resultado Final (Texto + Imagen + Voz)
-
-    Note over U,M: "Misión Cumplida: Contenido listo para Vender"
+    M->>M: Autocrítica (Soul Check)
+    M->>U: Entrega Resultado Final (Estrategia Completa)
 ```
 
 ## 📂 Desglose de Procesos
