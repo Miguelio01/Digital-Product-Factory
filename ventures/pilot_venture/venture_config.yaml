@@ -1,0 +1,10 @@
+venture_name: "Pilot Venture"
+description: "Primer espacio de trabajo para la validación de la factoría de productos digitales."
+strategic_objective: "Lanzar un producto digital mínimo viable (MVP) optimizado para conversión."
+target_audience:
+  primary: "Emprendedores digitales que buscan automatizar su marketing."
+  secondary: "Creadores de contenido que desean escalar sus ventas."
+brand_voice: "Profesional, innovadora y orientada a resultados."
+status: "initialization"
+created_at: "2026-02-25"
+current_focus: "Configuración de RAG y carga de prompts estratégicos."

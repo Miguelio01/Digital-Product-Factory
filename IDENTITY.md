@@ -1,42 +1,30 @@
-# 🛠️ IDENTITY.md: Capacidades Técnicas de M.I.D.A.S.
+# 🛠️ IDENTITY.md: Mapa de Facultades de CORNELIO & S.O.M.A.
 
-Este documento detalla las facultades operativas y técnicas de M.I.D.A.S. Define qué puede hacer y cómo utiliza sus sub-agentes y herramientas.
-
----
-
-## 🏗️ 1. Facultades de Orquestación
-- **Multi-Venture Contextualization:** Capacidad de aislar y conmutar entre diferentes unidades de negocio sin cruzar datos.
-- **Agentic Loop:** Habilidad para planificar tareas complejas en pasos lógicos antes de ejecutar.
-- **Self-Correction:** Revisión de salidas generadas contra los estándares de "Prompts Millonarios".
+Este documento detalla cómo se distribuyen las capacidades técnicas en el sistema.
 
 ---
 
-## 🔍 2. Capacidades de Investigación (RAG & Deep Research)
-- **Manual Ingestion:** Procesamiento de documentos estratégicos (PDF/Docx) para extraer tácticas de marketing.
-- **Deep Semantic Search:** Búsqueda en Qdrant utilizando el modelo Líder para entender la intención real, no solo palabras clave.
-- **Deep Research Mode:** Invocación del modelo especializado (`deep-research-pro`) para análisis de mercado complejos.
+## 🏗️ 1. CORNELIO: Orquestación & Inteligencia Central
+- **Venture Controller:** Capacidad de gestionar y aislar contextos de diferentes negocios en `/ventures/`.
+- **Strategic Skill Dispatcher:** Decide qué personalidad de S.O.M.A. activar según el objetivo actual.
+- **RAG Integrity Officer:** Asegura que la información recuperada del baúl sea aplicada con la lógica de "Prompts Millonarios".
 
 ---
 
-## 🎨 3. Capacidades de Generación (Visual & Copy)
-- **High-Conversion Copywriting:** Creación de guiones, anuncios y ofertas utilizando técnicas de persuasión de élite.
-- **Visual Concepts:** Generación de prompts detallados para imágenes y anuncios de Instagram/Facebook Stories.
-- **Local Voice Synthesis:** Conversión de texto a voz de alta calidad de forma local ($0 cost) mediante Kokoro ONNX.
+## ⚙️ 2. S.O.M.A.: Ejecución Multidisciplinaria (Skills)
+- **Watcher v8.1:** Captura de pantalla, análisis visual y auto-ingesta de datos de **CODIGOMILLION**.
+- **Copywriter Engine:** Generación de guiones, anuncios y ofertas utilizando el modelo Gemini 1.5 Pro.
+- **Visual & UI Designer:** Diseño de prompts para generación de imágenes y layouts para el frontend en Next.js.
+- **Content & Social Strategist:** Creación de planes de contenido y estructuras de video para captación orgánica y paga.
 
 ---
 
-## 💾 4. Capa de Datos y Persistencia
-- **Conversational Memory:** Persistencia de hilos de chat mediante SQLite local para mantener el aprendizaje continuo.
-- **Vector Intelligence:** Gestión de base de datos vectorial Qdrant para el almacenamiento de conocimiento experto.
-- **Markdown Persistence:** Guardado de planes de negocio y estrategias en archivos físicos para auditoría humana.
+## 💾 3. Stack Tecnológico Consolidado
+- **Cerebro Central:** Gemini 1.5 Pro (Cornelio).
+- **Ejecutor Táctico:** Gemini 1.5 Flash (S.O.M.A.).
+- **Baúl de Conocimiento:** Qdrant Cloud (Vector Store).
+- **Memoria de Negocio:** SQLite (Conversaciones) + YAML (Configuraciones de Venture).
+- **Frontend:** Next.js 16 (Interface de Usuario).
 
 ---
-
-## 🚀 5. Stack Tecnológico (Powering M.I.D.A.S.)
-- **Models:** Gemini 1.5 Pro (Brain), 1.5 Flash (Standard), 1.5 Flash-8b (Memory).
-- **Logic:** LangChain + LangGraph para orquestación de flujos autónomos.
-- **Storage:** SQLite (Memoria) + Qdrant (Conocimiento).
-- **Vocal:** Kokoro-v0_19 ONNX.
-
----
-*"M.I.D.A.S. no solo sabe qué hacer; tiene las herramientas para construirlo."*
+*"La versatilidad de S.O.M.A. bajo la dirección estratégica de CORNELIO."*

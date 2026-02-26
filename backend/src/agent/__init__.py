@@ -1,9 +1,3 @@
-"""
-AI Agent components.
-"""
+from .rag_agent import CornelioAgent
 
-from .rag_agent import RAGAgent
-
-__all__ = [
-    "RAGAgent"
-]
+__all__ = ["CornelioAgent"]

@@ -1,216 +1,207 @@
 """
-M.I.D.A.S. v6: Multi-session support with LangGraph Checkpoints.
+🏛️ CORNELIO v4.0: BÚNKER AUTÓNOMO (100% Ollama Local).
+Orquestación Maestro-Ejecutor de Costo $0.
 """
 import os
-import time
+import yaml
+import asyncio
 import re
-import sqlite3
-from typing import List, Optional, Dict, Any, Union, Annotated, TypedDict
+from typing import List, Optional, Dict, Any, Annotated, TypedDict
 from datetime import datetime
 from operator import add
 from pathlib import Path
 
-from pydantic import SecretStr
-from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_community.chat_models import ChatOllama
 from langchain_core.messages import HumanMessage, AIMessage, SystemMessage, BaseMessage
-from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langgraph.graph import StateGraph, START, END
-from langgraph.checkpoint.sqlite import SqliteSaver
+from langgraph.checkpoint.memory import InMemorySaver
 
-import google.generativeai as genai
-from ..rag import QdrantVectorStore, RAGRetriever, DocumentProcessor
+from google import genai
+from google.genai import types
+import mss
+from PIL import Image
+from io import BytesIO
 
+from ..rag import QdrantVectorStore, RAGRetriever
+
+# --- SISTEMA DE EJECUCIÓN S.O.M.A. LOCAL ---
+
+class SOMA_Bunker_Executor:
+    def __init__(self):
+        self.model = ChatOllama(model="llama3.1:8b", temperature=0.3)
+        self.api_key = os.getenv("GOOGLE_API_KEY")
+        self.vs = QdrantVectorStore()
+        self.retriever = RAGRetriever(self.vs)
+
+    async def _get_vault_knowledge(self, query: str) -> str:
+        """Recupera la sabiduría exacta del baúl vectorial (RAG)."""
+        try:
+            docs = self.retriever.retrieve(query)
+            return "\n---\n".join([d.page_content for d in docs])
+        except:
+            return "No se pudo recuperar conocimiento específico del baúl."
+
+    async def run_skill(self, skill: str, task: str, context: str = "") -> str:
+        """Ejecuta una personalidad de S.O.M.A. potenciada por RAG local."""
+        print(f"⚙️ S.O.M.A. consultando el Baúl para el Skill: {skill}...")
+        
+        # PASO MAESTRO: Recuperamos conocimiento específico antes de actuar
+        vault_knowledge = await self._get_vault_knowledge(f"Prompt Millonario {skill} {task}")
+        
+        if skill == "watcher": return await self._run_watcher(task)
+        if skill == "design": return await self._run_designer(task, context, vault_knowledge)
+        if skill == "avatar": return await self._run_avatar_research(task, context, vault_knowledge)
+        if skill == "viability": return await self._run_viability_check(task, context, vault_knowledge)
+        if skill == "naming": return await self._run_naming_expert(task, context, vault_knowledge)
+        
+        prompt = f"""Actúa como S.O.M.A. especializado en {skill}.
+SABIDURÍA DEL BAÚL (RAG): {vault_knowledge}
+CONTEXTO ESTRATÉGICO: {context}
+TAREA: {task}
+Usa la sabiduría del baúl para entregar un resultado de élite:"""
+        
+        response = await self.model.ainvoke([HumanMessage(content=prompt)])
+        return response.content
+
+    async def _run_avatar_research(self, task: str, context: str, vault: str) -> str:
+        """Investigación ICP potenciada por RAG."""
+        prompt = f"""Usa este PROMPT MAESTRO recuperado del baúl: {vault}
+Aclara y ejecuta la investigación para: {task}
+Contexto del Negocio: {context}"""
+        res = await self.model.ainvoke([HumanMessage(content=prompt)])
+        return res.content
+
+    async def _run_viability_check(self, task: str, context: str, vault: str) -> str:
+        """Validación de Viabilidad potenciada por RAG."""
+        prompt = f"""Usa este PROMPT MAESTRO recuperado del baúl: {vault}
+Valida la viabilidad de: {task}
+Contexto: {context}"""
+        res = await self.model.ainvoke([HumanMessage(content=prompt)])
+        return res.content
+
+    async def _run_naming_expert(self, task: str, context: str, vault: str) -> str:
+        """Naming de Élite potenciado por RAG."""
+        prompt = f"""Usa este PROMPT MAESTRO recuperado del baúl: {vault}
+Crea nombres memorables para: {task}
+Contexto: {context}"""
+        res = await self.model.ainvoke([HumanMessage(content=prompt)])
+        return res.content
+
+    async def _run_designer(self, task: str, context: str, vault: str) -> str:
+        """S.O.M.A. Designer con sabiduría de Director de Arte del Baúl."""
+        try:
+            translation_prompt = f"""Director de Arte Estratégico.
+Usa esta SABIDURÍA DE DISEÑO del baúl: {vault}
+Traduce la petición: {task}
+Contexto: {context}
+Genera el Prompt Maestro para Nano Banana en inglés:"""
+            
+            tech_prompt_res = await self.model.ainvoke([HumanMessage(content=translation_prompt)])
+            tech_prompt = tech_prompt_res.content.strip()
+            
+            client = genai.Client(api_key=self.api_key)
+            client.models.generate_content(model="models/gemini-2.5-flash-image", contents=tech_prompt)
+            
+            return f"✅ S.O.M.A. Designer: Activo visual generado usando sabiduría del baúl.\nPROMPT: {tech_prompt}"
+        except Exception as e:
+            return f"❌ S.O.M.A. Designer Error: {e}"
+
+    async def _run_watcher(self, topic: str) -> str:
+        """Watcher (Visión) - Única herramienta que intenta usar nube como fallback."""
+        try:
+            with mss.mss() as sct:
+                img = Image.frombytes("RGB", sct.grab(sct.monitors[1]).size, sct.grab(sct.monitors[1]).bgra, "raw", "BGRX")
+                buffered = BytesIO()
+                img.save(buffered, format="JPEG", quality=80)
+                
+                client = genai.Client(api_key=self.api_key)
+                response = client.models.generate_content(
+                    model="models/gemini-2.0-flash", # Intentamos Flash para visión
+                    contents=[types.Part.from_bytes(data=buffered.getvalue(), mime_type="image/jpeg"), 
+                              f"Extrae conocimiento de CODIGOMILLION sobre: {topic}"]
+                )
+                
+                vs = QdrantVectorStore()
+                from langchain_core.documents import Document
+                vs.add_documents([Document(page_content=response.text, metadata={"source": "CODIGOMILLION", "topic": topic})])
+                return f"✅ Conocimiento de '{topic}' inyectado al baúl."
+        except Exception as e:
+            return f"❌ Watcher Error (Probablemente cuota/API): {e}. S.O.M.A. recomienda usar entrada de texto manual por ahora."
+
+# --- AGENTE CORNELIO (EL ALMA DEL BÚNKER) ---
 
 class AgentState(TypedDict):
-    """The state of the agent graph."""
     messages: Annotated[List[BaseMessage], add]
-    context: str
-    query: str
-    standalone_query: str
-    image_paths: List[str]
+    venture_context: str
 
-
-class RAGAgent:
-    """Multi-session Consolidated Agent with Persistent Memory (0 COST)."""
-    
-    MODELS = {
-        "expert": "models/gemini-2.5-pro",
-        "standard": "models/gemini-2.5-flash",
-        "nano": "models/gemini-2.5-flash-lite",
-        "research": "models/deep-research-pro-preview-12-2025",
-        "image_gen": "models/gemini-2.0-flash-exp-image-generation",
-        "image_gen_alt": "models/nano-banana-pro-preview"
-    }
-
-    def __init__(self, api_key: Optional[str] = None):
-        self.api_key = api_key or os.getenv("GOOGLE_API_KEY")
-        genai.configure(api_key=self.api_key)
-        
-        self.vector_store = QdrantVectorStore()
-        self.retriever = RAGRetriever(self.vector_store)
-        self.doc_processor = DocumentProcessor()
-        
-        self.assets_dir = Path("static/generated_images")
-        self.assets_dir.mkdir(parents=True, exist_ok=True)
-        
-        # Checkpointer para persistencia local en SQLite (0 COST)
-        # Esto crea un archivo .db para guardar las conversaciones
-        self.db_path = "conversations.db"
-        self.conn = sqlite3.connect(self.db_path, check_same_thread=False)
-        self.checkpointer = SqliteSaver(self.conn)
+class CornelioAgent:
+    def __init__(self):
+        # CORNELIO Local (Gemma 3 4B - El ADN de Gemini en tu Mac)
+        self.model = ChatOllama(model="gemma3:4b", temperature=0.2)
+        self.executor = SOMA_Bunker_Executor()
+        self.checkpointer = InMemorySaver()
         self.agent_executor = self._build_graph()
+        self.venture_config = self._load_venture_config()
 
-    def _get_llm(self, model_key: str, temp: float = 0.7):
-        return ChatGoogleGenerativeAI(
-            google_api_key=SecretStr(self.api_key),
-            model=self.MODELS.get(model_key, self.MODELS["standard"]),
-            temperature=temp,
-            max_output_tokens=8000,
-            max_retries=5,
-            timeout=120
-        )
+    def _load_venture_config(self) -> str:
+        config_path = Path("ventures/pilot_venture/venture_config.yaml")
+        if config_path.exists():
+            with open(config_path, "r") as f:
+                return f"ESTADO DEL NEGOCIO:\n{yaml.dump(yaml.safe_load(f))}"
+        return "Iniciando nuevo proyecto."
 
     def _build_graph(self) -> Any:
         workflow = StateGraph(AgentState)
+        workflow.add_node("cornelio", self._cornelio_node)
+        workflow.add_node("soma", self._soma_node)
+        workflow.add_edge(START, "cornelio")
         
-        workflow.add_node("contextualize", self._contextualize_node)
-        workflow.add_node("research", self._research_node)
-        workflow.add_node("brain", self._brain_node)
-        workflow.add_node("render", self._image_gen_node)
-        
-        workflow.add_edge(START, "contextualize")
-        workflow.add_edge("contextualize", "research")
-        workflow.add_edge("research", "brain")
-        workflow.add_edge("brain", "render")
-        workflow.add_edge("render", END)
-        
+        # Lógica de ruteo por texto (Commands)
+        def route_cornelio(state: AgentState):
+            last_msg = state["messages"][-1].content
+            if "[EJECUTAR:" in last_msg:
+                return "soma"
+            return "end"
+
+        workflow.add_conditional_edges("cornelio", route_cornelio, {"soma": "soma", "end": END})
+        workflow.add_edge("soma", "cornelio")
         return workflow.compile(checkpointer=self.checkpointer)
 
-    def _contextualize_node(self, state: AgentState) -> Dict[str, Any]:
-        """Use conversation history to create a standalone query for better RAG."""
-        if len(state["messages"]) <= 1:
-            return {"standalone_query": state["query"]}
-            
-        contextualize_prompt = """Dado el siguiente historial de conversación y la última pregunta del usuario, 
-        que podría hacer referencia al contexto previo, formula una pregunta independiente que se pueda entender 
-        sin el historial. NO la respondas, solo reformúlala para que sea una búsqueda efectiva en una base de conocimientos.
-        
-        Si la pregunta ya es independiente, devuélvela tal cual."""
-        
-        prompt = ChatPromptTemplate.from_messages([
-            ("system", contextualize_prompt),
-            MessagesPlaceholder(variable_name="history"),
-            ("human", "{question}"),
-        ])
-        
-        question = state["query"]
-        history = state["messages"][:-1]
-        
-        # Retry logic for contextualization
-        for model_key in ["standard", "nano"]:
-            for attempt in range(2):
-                try:
-                    llm = self._get_llm(model_key, temp=0.1)
-                    chain = prompt | llm
-                    response = chain.invoke({"history": history, "question": question})
-                    standalone = response.content.strip()
-                    print(f"🧠 Memoria: '{question}' -> '{standalone}'")
-                    return {"standalone_query": standalone}
-                except Exception as e:
-                    if "429" in str(e) or "RESOURCE_EXHAUSTED" in str(e):
-                        print(f"    ⚠️ Cuota agotada en {model_key} (Contextualize). Esperando 6s...")
-                        time.sleep(6)
-                        continue
-                    raise e
-        return {"standalone_query": question}
+    async def _cornelio_node(self, state: AgentState) -> Dict[str, Any]:
+        system_msg = f"""Eres CORNELIO, CEO y Orquestador Mayor del Búnker Autónomo.
+{state['venture_context']}
 
-    def _research_node(self, state: AgentState) -> Dict[str, Any]:
-        time.sleep(1)
-        # Usamos la query contextualizada por la memoria para buscar
-        search_query = state.get("standalone_query") or state["query"]
-        context = self.retriever.get_context(search_query)
-        return {"context": context}
+MAPA DE DELEGACIÓN OBLIGATORIO PARA S.O.M.A.:
+1. [EJECUTAR: avatar | TAREA: ...] -> Uso exclusivo para investigar al Cliente Ideal (ICP), miedos y deseos.
+2. [EJECUTAR: naming | TAREA: ...] -> Uso exclusivo para crear nombres de productos, marcas o dominios.
+3. [EJECUTAR: viability | TAREA: ...] -> Uso exclusivo para validar si una idea es rentable.
+4. [EJECUTAR: copy | TAREA: ...] -> Para redacción de anuncios, correos, guiones y cartas de venta.
+5. [EJECUTAR: design | TAREA: ...] -> Para creación de imágenes con Nano Banana y diseño visual.
+6. [EJECUTAR: watcher | TAREA: ...] -> Para capturar y aprender del curso CODIGOMILLION en pantalla.
 
-    def _brain_node(self, state: AgentState) -> Dict[str, Any]:
-        system_prompt = f"""Eres M.I.D.A.S., un experto Senior en Marketing Digital y Diseño Visual.
-        
-        CONTEXTO ESTRATÉGICO: {state['context']}
-        
-        TU MISIÓN:
-        1. Analiza profundamente la petición del usuario.
-        2. Genera una respuesta estratégica en Markdown de alto impacto.
-        3. Si se requiere algo visual, diseña prompts ultra-detallados en bloques ```PROMPT_IMAGEN.
-        
-        REGLA DE ORO: Tus estrategias deben ser 'Millonarias', como en tus manuales."""
+DIRECTRICES:
+- No mezcles departamentos. Cada tarea debe ir a su Skill correspondiente.
+- Tu enfoque es siempre el ROI y la Estrategia Millonaria.
+- Si no necesitas ejecutar, simplemente responde como el estratega que eres.
+"""
+        response = await self.model.ainvoke([SystemMessage(content=system_msg)] + state["messages"])
+        return {"messages": [response]}
 
-        # Fallback cascade: Pro -> Flash -> Flash Lite (Nano)
-        for model_key in ["expert", "standard", "nano"]:
-            for attempt in range(2):
-                try:
-                    llm = self._get_llm(model_key)
-                    response = llm.invoke([SystemMessage(content=system_prompt)] + state["messages"])
-                    return {"messages": [response]}
-                except Exception as e:
-                    if "429" in str(e) or "RESOURCE_EXHAUSTED" in str(e):
-                        print(f"    ⚠️ Cuota agotada en {model_key} (Brain). Reintentando en 6s...")
-                        time.sleep(6)
-                        continue
-                    raise e
-        return {"messages": [AIMessage(content="He superado todos los límites de cuota gratuitos de Google. Por favor, espera 1 minuto antes de volver a intentar.")]}
-
-    def _image_gen_node(self, state: AgentState) -> Dict[str, Any]:
-        last_message = state["messages"][-1].content
-        prompts = re.findall(r"```PROMPT_IMAGEN\n(.*?)\n```", last_message, re.DOTALL)
+    async def _soma_node(self, state: AgentState) -> Dict[str, Any]:
+        last_msg = state["messages"][-1].content
+        # Regex para extraer el comando de Cornelio
+        match = re.search(r"\[EJECUTAR:\s*(.*?)\s*\|\s*TAREA:\s*(.*?)\]", last_msg)
         
-        image_paths = []
-        if prompts:
-            model = genai.GenerativeModel(self.MODELS["image_gen"])
-            for i, p_text in enumerate(prompts[:2]):
-                try:
-                    response = model.generate_content(p_text)
-                    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-                    img_path = self.assets_dir / f"img_{timestamp}_{i}.png"
-                    
-                    if hasattr(response, 'candidates') and response.candidates[0].content.parts:
-                        for part in response.candidates[0].content.parts:
-                            if hasattr(part, 'inline_data'):
-                                with open(img_path, "wb") as f:
-                                    f.write(part.inline_data.data)
-                                image_paths.append(str(img_path))
-                except Exception as e:
-                    print(f"🎨 Render Error: {e}")
+        if match:
+            skill = match.group(1).strip().lower()
+            task = match.group(2).strip()
+            result = await self.executor.run_skill(skill, task, state['venture_context'])
+            return {"messages": [AIMessage(content=f"⚙️ S.O.M.A. Reporte de Ejecución:\n{result}")]}
         
-        return {"image_paths": image_paths}
+        return {"messages": [AIMessage(content="❌ S.O.M.A.: Comando de ejecución no detectado correctamente.")]}
 
-    def chat(self, message: str, thread_id: str = "default") -> Dict[str, Any]:
-        """Execute chat within a specific thread."""
+    async def chat(self, message: str, thread_id: str = "default") -> Dict[str, Any]:
         config = {"configurable": {"thread_id": thread_id}}
-        inputs = {
-            "messages": [HumanMessage(content=message)], 
-            "query": message, 
-            "standalone_query": "", # Inicializamos vacío
-            "image_paths": [], 
-            "context": ""
-        }
-        
-        result = self.agent_executor.invoke(inputs, config=config)
-        
-        final_text = result["messages"][-1].content
-        return {"text": final_text, "images": result.get("image_paths", [])}
-
-    def get_conversation_history(self, thread_id: str = "default"):
-        """Retrieve history for a specific thread."""
-        config = {"configurable": {"thread_id": thread_id}}
-        state = self.agent_executor.get_state(config)
-        if not state or "messages" not in state.values:
-            return []
-        
-        return [{"role": "user" if isinstance(m, HumanMessage) else "assistant", "content": m.content} 
-                for m in state.values["messages"]]
-
-    def get_knowledge_base_info(self): return {"document_count": self.vector_store.get_document_count()}
-    def clear_knowledge_base(self): self.vector_store.clear()
-    def add_documents_from_processor(self, docs):
-        if not docs: return 0
-        self.vector_store.add_documents(docs)
-        return len(docs)
+        inputs = {"messages": [HumanMessage(content=message)], "venture_context": self.venture_config}
+        result = await self.agent_executor.ainvoke(inputs, config=config)
+        return {"text": result["messages"][-1].content}

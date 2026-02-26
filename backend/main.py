@@ -1,9 +1,11 @@
 """
-M.I.D.A.S. API v3.2: Sessions, Global Gallery, and RAG Ingestion.
+S.O.M.A. API v7.1: Social Orchestration & Marketing Automation.
+Clean Version: Focused on Core Reasoning and OpenCanvas.
 """
 import os
 import shutil
-from typing import List, Optional
+import uuid
+from typing import List, Optional, Dict, Any
 from fastapi import FastAPI, HTTPException, UploadFile, File
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
@@ -13,11 +15,10 @@ from dotenv import load_dotenv
 
 # Logic imports
 from src.agent.rag_agent import RAGAgent
-from src.interface.voice_service import VoiceService
 
 load_dotenv()
 
-app = FastAPI(title="M.I.D.A.S. API", version="3.2")
+app = FastAPI(title="S.O.M.A. API", version="7.1.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -36,23 +37,31 @@ IMAGES_DIR.mkdir(parents=True, exist_ok=True)
 
 app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
-# Initialize
+# Initialize Agent
 try:
     agent = RAGAgent()
-    voice_service = VoiceService()
+    print("🧠 S.O.M.A. Core Engine: Online")
 except Exception as e:
-    print(f"❌ Init Error: {e}")
+    print(f"❌ S.O.M.A. Init Error: {e}")
     agent = None
-    voice_service = None
 
 class ChatRequest(BaseModel):
     message: str
     thread_id: str = "default"
 
+class ArtifactModel(BaseModel):
+    id: str
+    type: str
+    content: str
+    status: str
+
 class ChatResponse(BaseModel):
     text: str
     images: List[str]
-    audio_url: Optional[str] = None
+    plan: Optional[Dict[str, Any]] = None
+    artifacts: Optional[List[ArtifactModel]] = None
+    research: Optional[Dict[str, Any]] = None
+    reasoning: Optional[str] = None
 
 class TextIngestRequest(BaseModel):
     text: str
@@ -60,14 +69,27 @@ class TextIngestRequest(BaseModel):
 
 @app.get("/")
 async def root():
-    return {"status": "online", "agent": "M.I.D.A.S."}
+    return {"status": "online", "agent": "S.O.M.A. v7.1"}
 
 @app.get("/status")
 async def get_status():
+    if not agent:
+        return {"status": "error", "message": "Agent not initialized"}
     return {
-        "knowledge_base": agent.get_knowledge_base_info() if agent else {},
-        "models": agent.MODELS if agent else {}
+        "knowledge_base": agent.get_knowledge_base_info(),
+        "models": agent.MODELS
     }
+
+@app.get("/history/{thread_id}")
+async def get_history(thread_id: str):
+    try:
+        if not agent: return {"history": []}
+        history = agent.get_conversation_history(thread_id)
+        return {"history": history}
+    except Exception as e:
+        # Fallback seguro para evitar error 500
+        print(f"⚠️ History Error: {e}")
+        return {"history": []}
 
 @app.get("/gallery")
 async def get_gallery():
@@ -91,42 +113,26 @@ async def ingest_text(request: TextIngestRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.post("/ingest/files")
-async def ingest_files(files: List[UploadFile] = File(...)):
-    total_chunks = 0
-    temp_dir = BASE_DIR / "temp_uploads"
-    temp_dir.mkdir(exist_ok=True)
-    try:
-        for file in files:
-            file_path = temp_dir / file.filename
-            with open(file_path, "wb") as buffer:
-                shutil.copyfileobj(file.file, buffer)
-            chunks = agent.doc_processor.load_document(str(file_path))
-            count = agent.add_documents_from_processor(chunks)
-            total_chunks += count
-            os.remove(file_path)
-        return {"status": "success", "total_chunks": total_chunks}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
 @app.post("/chat", response_model=ChatResponse)
 async def chat_endpoint(request: ChatRequest):
     try:
-        if not agent: raise Exception("Agente no listo")
+        if not agent: raise HTTPException(status_code=500, detail="Agente S.O.M.A. no listo")
         
-        result = agent.chat(request.message, thread_id=request.thread_id)
-        text = result.get("text", "")
-        images = result.get("images", [])
+        clean_message = request.message.strip()
+        if not clean_message:
+            return ChatResponse(text="CORNELIO espera tus instrucciones.", images=[])
         
-        audio_filename = f"voice_{os.urandom(4).hex()}.wav"
-        audio_path = STATIC_DIR / audio_filename
-        voice_service.speak(text, output_path=str(audio_path))
+        # El nuevo Agente v8 maneja su propio bucle asíncrono internamente por ahora
+        result = agent.chat(clean_message, thread_id=request.thread_id)
         
-        base_url = os.getenv("BACKEND_URL", "http://localhost:8000")
-        image_urls = [f"{base_url}/static/generated_images/{Path(img).name}" for img in images]
-        audio_url = f"{base_url}/static/{audio_filename}"
-        
-        return ChatResponse(text=text, images=image_urls, audio_url=audio_url)
+        return ChatResponse(
+            text=result.get("text", ""),
+            images=[],
+            plan=None,
+            artifacts=result.get("artifacts", []),
+            research=None,
+            reasoning=result.get("reasoning", "Autonomous Loop Active")
+        )
     except Exception as e:
         print(f"❌ Chat Error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
