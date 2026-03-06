@@ -37,3 +37,4 @@ El sistema hereda la base del Módulo 5 de Master_IA y se expande con:
 ## 5. Fuentes de Verdad
 - **Manual del Módulo 5:** `GEMINI.md`
 - **Base de Prompts:** Directorio `docs/` (Por completar por Miguel).
+- **Notion Workspace (Bitácora Maestra):** `3184cfe0e51e808a96d8e594e72ab9de`

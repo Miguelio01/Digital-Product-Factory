@@ -34,7 +34,15 @@ frontend/.env
 # Node.js
 node_modules/
 frontend/node_modules/
+whatsapp-service/node_modules/
 .next/
 frontend/.next/
 pnpm-lock.yaml
 frontend/pnpm-lock.yaml
+whatsapp-service/pnpm-lock.yaml
+
+# WhatsApp Service (Seguridad)
+whatsapp-service/sessions/
+whatsapp-service/.env
+whatsapp-service/creds.json
+whatsapp-service/auth_info_baileys/
